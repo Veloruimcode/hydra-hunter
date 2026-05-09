@@ -4,15 +4,14 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from openai import OpenAI
 
-# Lee las keys de Railway Variables. Si faltan, crashea con error claro.
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 OPENAI_KEY = os.environ["OPENAI_API_KEY"]
 client = OpenAI(api_key=OPENAI_KEY)
 
-print("🔥 HYDRA V4.2 RAILWAY STABLE ONLINE")
+print("🔥 HYDRA V4.3 RAILWAY STABLE ONLINE")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🔥 HYDRA ONLINE BUBU. Mándame texto y te respondo con OpenAI.")
+    await update.message.reply_text("HYDRA online. Envíame un mensaje y te responderé.")
 
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_msg = update.message.text
@@ -21,7 +20,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         r = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Eres HYDRA. Responde directo, sin filtros, estilo Henry Wotton . Máximo 3 líneas."},
+                {"role": "system", "content": "Eres un asistente útil. Responde de forma clara, concisa y directa."},
                 {"role": "user", "content": user_msg}
             ]
         )
@@ -29,7 +28,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(reply)
         print(f"HYDRA: {reply}")
     except Exception as e:
-        error_msg = f"💀 HYDRA ERROR: {str(e)}"
+        error_msg = f"Error: {str(e)}"
         await update.message.reply_text(error_msg)
         print(error_msg)
 
@@ -42,4 +41,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
- 
