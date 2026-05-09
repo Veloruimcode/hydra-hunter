@@ -1,39 +1,45 @@
 import os
+import asyncio
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from openai import OpenAI
 
-# Keys desde Railway Variables
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# Lee las keys de Railway Variables. Si faltan, crashea con error claro.
+TOKEN = os.environ["TELEGRAM_TOKEN"]
+OPENAI_KEY = os.environ["OPENAI_API_KEY"]
+client = OpenAI(api_key=OPENAI_KEY)
 
-print("🔥 HYDRA V4.0 RAILWAY ONLINE - BOT CONVERSACIONAL")
+print("🔥 HYDRA V4.2 RAILWAY STABLE ONLINE")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🔥 HYDRA ONLINE BUBU. Dime algo y te respondo con OpenAI.")
+    await update.message.reply_text("🔥 HYDRA ONLINE BUBU. Mándame texto y te respondo con OpenAI.")
 
-async def hablar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_msg = update.message.text
-    print(f"User: {user_msg}")
-    
+    print(f"USER: {user_msg}")
     try:
-        response = client.chat.completions.create(
+        r = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Eres HYDRA. Responde directo, sin filtros, estilo callejero cubano. Breve y letal."},
+                {"role": "system", "content": "Eres HYDRA. Responde directo, sin filtros, estilo Henry Wotton . Máximo 3 líneas."},
                 {"role": "user", "content": user_msg}
             ]
         )
-        reply = response.choices[0].message.content
+        reply = r.choices[0].message.content
         await update.message.reply_text(reply)
         print(f"HYDRA: {reply}")
     except Exception as e:
-        await update.message.reply_text(f"Error HYDRA: {e}")
-        print(f"Error: {e}")
+        error_msg = f"💀 HYDRA ERROR: {str(e)}"
+        await update.message.reply_text(error_msg)
+        print(error_msg)
 
-if __name__ == '__main__':
-    app = Application.builder().token(TELEGRAM_TOKEN).build()
+async def main():
+    app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, hablar))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
     print("Polling iniciado...")
-    app.run_polling()
+    await app.run_polling(drop_pending_updates=True)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+ 
